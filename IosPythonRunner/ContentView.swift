@@ -7,9 +7,11 @@ struct ContentView: View {
         NavigationSplitView {
             SampleSidebar(
                 samples: workspace.samples,
-                selectedFilename: workspace.filename,
-                selectionAction: workspace.load(sample:)
+                selection: $workspace.selectedSampleFilename
             )
+            .onChange(of: workspace.selectedSampleFilename) { _, newValue in
+                workspace.applySelection(filename: newValue)
+            }
         } detail: {
             detailContent
                 .navigationTitle("iOS Python Runner")

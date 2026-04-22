@@ -7,6 +7,7 @@ final class RunnerWorkspace {
     var filename: String
     var sourceCode: String
     var output: String
+    var selectedSampleFilename: String?
     var selectedMode: RunnerMode
     var isRunning: Bool
     var samples: [ScriptSample]
@@ -26,13 +27,21 @@ final class RunnerWorkspace {
         filename = initial.filename
         sourceCode = initial.code
         output = "Ready."
+        selectedSampleFilename = initial.filename
         selectedMode = .compatible
         isRunning = false
         samples = loadedSamples
         lastBackendName = nil
     }
 
-    func load(sample: ScriptSample) {
+    func applySelection(filename: String?) {
+        guard
+            let filename,
+            let sample = samples.first(where: { $0.filename == filename })
+        else {
+            return
+        }
+
         scriptTitle = sample.title
         filename = sample.filename
         sourceCode = sample.code
