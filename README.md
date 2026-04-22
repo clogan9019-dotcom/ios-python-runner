@@ -35,10 +35,13 @@ The `JIT Assist` mode in this scaffold is intentionally treated as optional. The
 
 ## GitHub Actions (.ipa)
 
-This repo includes a workflow that can build a device `.ipa` as a GitHub Actions artifact:
+This repo includes a workflow that can build an **unsigned** `.ipa` as a GitHub Actions artifact (really: a zip of `Payload/*.app`).
 
 - Workflow: `.github/workflows/ios-ipa.yml`
-- Requires signing secrets (iOS will not install an unsigned `.ipa`):
+- Unsigned artifact: `IosPythonRunner-unsigned-ipa`
+- Note: an unsigned `.ipa` is not installable on stock iOS until it is signed (some sideload tools sign during install).
+
+Optional signed export (only if you add signing secrets):
   - `IOS_P12_BASE64`: base64 of your signing certificate `.p12`
   - `IOS_P12_PASSWORD`: password for the `.p12`
   - `IOS_MOBILEPROVISION_BASE64`: base64 of your `.mobileprovision`
