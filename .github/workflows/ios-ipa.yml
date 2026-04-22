@@ -53,13 +53,16 @@ jobs:
           name: IosPythonRunner-unsigned-ipa
           path: build/IosPythonRunner-unsigned.ipa
 
-      - name: Verify signing secrets present (optional)
+      - name: Detect signing secrets (optional)
         shell: bash
         run: |
           set -euo pipefail
           if [[ -z "${IOS_P12_BASE64:-}" || -z "${IOS_P12_PASSWORD:-}" || -z "${IOS_MOBILEPROVISION_BASE64:-}" || -z "${IOS_KEYCHAIN_PASSWORD:-}" ]]; then
+            echo "SIGNING_AVAILABLE=false" >> "$GITHUB_ENV"
             echo "Signing secrets not set; skipping signed IPA export."
-            exit 0
+          else
+            echo "SIGNING_AVAILABLE=true" >> "$GITHUB_ENV"
+            echo "Signing secrets detected; will also export a signed IPA."
           fi
         env:
           IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
@@ -68,7 +71,7 @@ jobs:
           IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
 
       - name: Install signing certificate and profile
-        if: ${{ secrets.IOS_P12_BASE64 != '' && secrets.IOS_P12_PASSWORD != '' && secrets.IOS_MOBILEPROVISION_BASE64 != '' && secrets.IOS_KEYCHAIN_PASSWORD != '' }}
+        if: ${{ env.SIGNING_AVAILABLE == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -108,7 +111,7 @@ jobs:
           IOS_KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
 
       - name: Resolve bundle identifier
-        if: ${{ env.TEAM_ID != '' }}
+        if: ${{ env.SIGNING_AVAILABLE == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -117,7 +120,7 @@ jobs:
           echo "Bundle ID: $BUNDLE_ID"
 
       - name: Create ExportOptions.plist
-        if: ${{ env.TEAM_ID != '' }}
+        if: ${{ env.SIGNING_AVAILABLE == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -144,7 +147,7 @@ jobs:
           EOF
 
       - name: Archive
-        if: ${{ env.TEAM_ID != '' }}
+        if: ${{ env.SIGNING_AVAILABLE == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -162,7 +165,7 @@ jobs:
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 
       - name: Export IPA
-        if: ${{ env.TEAM_ID != '' }}
+        if: ${{ env.SIGNING_AVAILABLE == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -175,7 +178,7 @@ jobs:
             OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 
       - name: Upload signed IPA artifact
-        if: ${{ env.TEAM_ID != '' }}
+        if: ${{ env.SIGNING_AVAILABLE == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: IosPythonRunner-ipa
